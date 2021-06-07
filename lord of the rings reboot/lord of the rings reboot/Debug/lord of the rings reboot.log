@@ -1,0 +1,12 @@
+﻿  Source.cpp
+C:\Users\andre\source\repos\lord of the rings reboot\lord of the rings reboot\Source.cpp(21,26): warning C4309: 'initializing': truncation of constant value
+C:\Users\andre\source\repos\lord of the rings reboot\lord of the rings reboot\Source.cpp(444,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\andre\source\repos\lord of the rings reboot\lord of the rings reboot\Source.cpp(626,16): warning C4309: 'initializing': truncation of constant value
+C:\Users\andre\source\repos\lord of the rings reboot\lord of the rings reboot\Source.cpp(681,21): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
+C:\Users\andre\source\repos\lord of the rings reboot\lord of the rings reboot\Source.cpp(681,29): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
+C:\Users\andre\source\repos\lord of the rings reboot\lord of the rings reboot\Source.cpp(748,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\andre\source\repos\lord of the rings reboot\lord of the rings reboot\Source.cpp(308): warning C4715: 'UnitAnimmation': not all control paths return a value
+C:\Users\andre\source\repos\lord of the rings reboot\lord of the rings reboot\Source.cpp(413): warning C4715: 'UnitCreate': not all control paths return a value
+C:\Users\andre\source\repos\lord of the rings reboot\lord of the rings reboot\Source.cpp(484): warning C4715: 'UnitCatch': not all control paths return a value
+C:\Users\andre\source\repos\lord of the rings reboot\lord of the rings reboot\Source.cpp(468): warning C4715: 'UnitPlace': not all control paths return a value
+  lord of the rings reboot.vcxproj -> C:\Users\andre\source\repos\lord of the rings reboot\Debug\lord of the rings reboot.exe
