@@ -1,0 +1,529 @@
+#include<iostream>
+#include<time.h>
+#include<Windows.h>
+#include<conio.h>
+#include<string>
+#include <stdexcept>
+using namespace std;
+
+//Constants-----------------------------
+HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+COORD c;
+const int size_x = 114; //size of console window x 
+const int size_y = 27; //size of the console wondow y
+const char unit_symbol = 219; //symbol that represents the block of the map
+const char path_symbol = ':'; // symvol that represents the path
+const int movement[8][2] = { {0,1}, {1,1}, {1,0}, {1,-1}, {0,-1}, {-1,-1}, {-1,0}, {-1,1} }; //in what direction unit can walk or see
+const char* eraze = "                   "; //19 // to eraze the text which is next to the map
+//map of the battle field
+const int GeneralMap[size_y][size_x] = {
+		{8,	8,	8,	8,	8,	12,	0,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	12,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	7,	7,	15,	15,	15,	15,	15,	15,	15,	15,	15,},
+		{8,	8,	12,	14,	12,	0,	0,	0,	12,	14,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	12,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	0,	0,	0,	0,	0,	7,	7,	7,	7,	15,	15,	15,	15,	15,	15,},
+		{12,	14,	12,	12,	14,	0,	0,	0,	14,	12,	12,	14,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	0,	0,	0,	7,	7,	7,	7,	7,	7,	7,},
+		{8,	8,	12,	14,	12,	0,	0,	0,	12,	14,	12,	8,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	8,	8,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	12,	8,	8,	8,	8,	8,	12,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	0,	0,	0,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	0,	7,	0,	0,	0,	0,},
+		{8,	8,	8,	8,	8,	12,	0,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	0,	0,	8,	2,	2,},
+		{8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	12,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	0,	0,	0,	0,	0,	0,	7,	7,	7,	7,	7,	7,	7,	7,	7,	0,	8,	8,	8,	8,	8,	8,	8,	8,	8,	2,	2,	2,	2,	2,	2,},
+		{8,	8,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	6,	6,	6,	6,	6,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	0,	0,	7,	15,	15,	15,	7,	7,	7,	7,	7,	0,	0,	0,	0,	0,	0,	0,	8,	8,	8,	2,	2,	2,	2,	2,	2,},
+		{12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	7,	7,	7,	7,	7,	7,	0,	0,	0,	0,	0,	0,	10,	10,	10,	2,	2,	2,	2,	1,	1,	1,	1,	1,	1,	2,},
+		{8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	0,	0,	0,	7,	7,	7,	7,	7,	7,	7,	7,	7,	7,	7,	0,	0,	0,	0,	0,	0,	10,	10,	10,	2,	2,	2,	1,	1,	1,	1,	2,	2,	1,	1,	1,	1,	1,	1,	2,},
+		{8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	0,	0,	8,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	0,	0,	0,	0,	0,	0,	7,	7,	15,	15,	15,	15,	15,	15,	7,	0,	10,	10,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,},
+		{12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	8,	8,	0,	0,	0,	0,	7,	0,	0,	0,	7,	7,	7,	7,	7,	7,	7,	7,	0,	0,	0,	0,	0,	0,	0,	0,	8,	8,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	0,	0,	0,	0,	7,	7,	7,	15,	15,	7,	0,	0,	0,	0,	0,	0,	0,	0,	0,	10,	2,	2,	2,	2,	2,	2,	1,	1,	1,	1,	1,	1,	1,	1,	1,	2,},
+		{8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	7,	7,	7,	7,	7,	7,	7,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	0,	0,	0,	0,	0,	7,	7,	0,	0,	0,	0,	2,	2,	2,	2,	2,	2,	2,	2,	1,	1,	1,	1,	1,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,},
+		{8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	12,	8,	8,	8,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	0,	0,	7,	7,	15,	15,	15,	7,	0,	0,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	0,	0,	0,	0,	10,	10,	10,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	1,	1,	1,	1,	1,	1,	2,	2,	2,	2,	2,	2,},
+		{8,	8,	12,	12,	12,	12,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	8,	8,	0,	0,	0,	0,	0,	0,	7,	7,	15,	15,	15,	15,	15,	7,	7,	0,	0,	0,	0,	0,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	1,	1,	1,	1,	2,	2,	2,	2,	2,},
+		{8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	0,	7,	7,	7,	7,	7,	7,	15,	15,	7,	7,	7,	7,	7,	7,	7,	7,	0,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	2,	2,	2,	2,	2,	2,	2,	10,	10,	2,	2,	2,	2,	1,	1,	1,	1,	1,	2,	2,},
+		{8,	6,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	6,	6,	6,	6,	8,	8,	8,	6,	6,	6,	6,	6,	6,	8,	8,	8,	0,	0,	0,	0,	7,	7,	7,	7,	7,	7,	7,	7,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	2,	2,	2,	2,	10,	10,	10,	10,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,},
+		{8,	8,	8,	8,	8,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	12,	12,	12,	12,	12,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	10,	10,	10,	10,	10,	0,	0,	0,	0,	0,	0,	0,	0,	0,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	2,	2,	2,	2,	2,	2,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,},
+		{8,	8,	6,	6,	6,	6,	6,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	8,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,},
+		{8,	8,	12,	12,	12,	8,	8,	8,	8,	0,	0,	0,	0,	0,	0,	0,	0,	0,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	11,	11,	11,	11,	11,	11,	11,	11,	11,	11,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,},
+		{8,	8,	8,	8,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	11,	11,	11,	11,	11,	11,	11,	11,	1,	1,	1,	1,	1,	1,	1,	11,	11,	11,	11,	11,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,},
+		{8,	8,	8,	8,	0,	7,	7,	7,	7,	7,	7,	7,	7,	7,	0,	0,	0,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	11,	11,	11,	11,	11,	11,	1,	1,	1,	1,	1,	1,	1,	1,	1,	11,	11,	11,	11,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	15,	7,	7,	7,	7,	7,	7,	7,	7,	7,	15,	10,	10,},
+		{8,	8,	8,	8,	0,	7,	15,	15,	15,	15,	15,	15,	15,	7,	7,	7,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	10,	10,	10,	10,	10,	10,	11,	11,	11,	11,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	11,	1,	1,	1,	1,	1,	1,	1,	11,	11,	11,	11,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	7,	10,	11,	10,	10,	10,	10,	6,	10,	10,	7,	10,	10,},
+		{8,	8,	0,	0,	7,	7,	15,	15,	15,	15,	15,	15,	15,	15,	15,	7,	7,	7,	0,	0,	0,	0,	0,	0,	10,	10,	10,	10,	10,	11,	11,	11,	11,	11,	11,	11,	11,	11,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	11,	11,	11,	11,	11,	11,	11,	11,	11,	11,	11,	11,	11,	11,	11,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	7,	11,	10,	10,	10,	6,	10,	10,	10,	11,	7,	10,	10,},
+		{8,	0,	0,	7,	7,	15,	15,	15,	15,	15,	15,	15,	15,	7,	7,	0,	0,	0,	0,	10,	10,	11,	11,	11,	11,	10,	11,	10,	11,	11,	11,	11,	11,	1,	1,	11,	11,	11,	11,	11,	10,	10,	10,	10,	10,	10,	10,	10,	10,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	7,	10,	10,	6,	10,	10,	10,	10,	6,	10,	7,	10,	10,},
+		{0,	0,	7,	15,	15,	15,	15,	15,	15,	15,	15,	7,	7,	7,	0,	0,	10,	10,	10,	10,	10,	10,	11,	11,	11,	11,	11,	11,	11,	11,	11,	1,	1,	1,	11,	11,	11,	11,	11,	10,	10,	10,	10,	2,	2,	2,	2,	2,	2,	2,	2,	2,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	2,	2,	2,	2,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	7,	10,	6,	10,	10,	11,	10,	10,	10,	11,	7,	10,	10,},
+		{7,	7,	15,	15,	15,	15,	15,	15,	15,	7,	7,	7,	0,	0,	0,	0,	0,	0,	0,	10,	10,	10,	10,	10,	11,	11,	11,	11,	1,	1,	1,	1,	1,	11,	11,	11,	11,	10,	10,	10,	10,	10,	2,	2,	2,	2,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	15,	7,	7,	7,	7,	7,	7,	7,	7,	7,	15,	10,	10,},
+		{7,	15,	15,	15,	15,	15,	15,	15,	7,	7,	0,	0,	0,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	11,	11,	11,	11,	1,	11,	11,	11,	11,	11,	10,	10,	10,	10,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	2,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,	10,}
+
+
+};
+//structure of the a single unit 
+struct unit {
+	int x;
+	int y;
+	int NewX;
+	int NewY;
+	int health;
+	int protection;
+	int damage;
+	int atack_speed;
+	int travel_speed;
+	int color;
+	int value;
+	int profit;
+};
+//------------------------------------------
+
+//Prototypes--------------------------------
+void HideCursor();
+void ScreenSize(int, int);
+void DrawLogo();
+void DrawMenu();
+void DrawMap();
+void GamePlay();
+//void Bot();
+//void Player();
+void Collision(unit, unit);
+void MatchResult(unit);
+void EndMatch(bool);
+
+//------------------------------------------
+
+//Functions---------------------------------
+
+//shows win/loose
+void EndMatch(bool winner) {
+	if (winner == true) { //if you win prints "win"
+		system("cls");
+		//PrintWin();
+		cout << "WIN!!!" << endl;
+	}
+	else { //if you loose prints "loose"
+		system("cls");
+		//PrintLoose();
+		cout << "LOOSE(" << endl;
+	}
+}
+
+int UnitAnimmation(int map[][size_y], unit un ) {
+	SetConsoleTextAttribute(h, un.color);
+	c.X = un.x;
+	c.Y = un.y;
+	if (un.x == un.NewX && un.y == un.NewY) {
+		//exit to gameplay() to the exact point
+		return 0;
+	}
+	else {
+		if (un.x > un.NewX) un.x--;
+		else if (un.x < un.NewX) un.x++;
+		if (un.y > un.NewY) un.y--;
+		else if (un.y < un.NewY) un.y++;
+		SetConsoleCursorPosition(h, c);
+		cout << path_symbol;
+		//Draw_map_and_units();
+		Sleep(100);
+		UnitAnimmation(map, un);
+	}
+}
+
+//prints the layer of the unit positions
+void ShowUnitMap(unit all_units[], int iteration) {
+	c.X = size_x;
+	c.Y = size_y;
+	SetConsoleCursorPosition(h, c);
+	cout << "show unit map";
+	Sleep(100);
+
+	for (int i = 0; i < iteration; i++) {
+		if (all_units[i].color != 0) { //prints unit block that has 13 or 15
+			SetConsoleTextAttribute(h, all_units[i].color); //changes the text color
+			c.X = all_units[i].NewX;
+			c.Y = all_units[i].NewY;
+			SetConsoleCursorPosition(h, c); // sets cursor
+			cout << unit_symbol;
+		}
+	}
+
+}
+
+//decreases the health of bot/player
+void MatchResult(unit un, int PlayerHealth, int BotHealth) {
+	if (un.color == 13) { //if enemy wins player health -1
+		PlayerHealth--;
+	}
+	else { // if you win bot health -1
+		BotHealth--;
+	}
+
+	if (PlayerHealth<= 0) { //if bot/player health is below 0 then endmatch()
+		EndMatch(true);
+	}
+	else EndMatch(false);
+}
+
+//counts the outcome of the fight
+void Collision(unit al, unit en) {
+	while (en.health < 0 || al.health < 0) { //loop until bot/player units health is below 0
+		en.health = al.atack_speed * al.damage - en.protection; //count bot unit health
+		al.health = en.atack_speed * en.damage - al.protection; //count player unit health
+	}
+	if (en.health == 0) { //if bot unit health <0
+		al.NewX = en.NewX; //change player unit pos
+		al.NewY = en.NewY;//change player unit pos
+		//MatchResult(en); // winner
+	}
+	else { //if player unit <0
+		en.NewX = al.NewX; //change bot unit pos
+		en.NewY = al.NewY; //change bot unit pos
+		//MatchResult(al); //winner
+	}
+}
+
+//creates a single unit
+unit UnitCreate(int iter, unit all_units[], int who, int map[][size_y]) {
+	c.X = size_x;
+	c.Y = size_y;
+	SetConsoleCursorPosition(h, c);
+	cout << "unit create";
+	Sleep(1000);
+
+	switch (who) { //depends on who calls the function
+	case 0: //player
+		all_units[iter].x = 99;
+		all_units[iter].y = 21;
+		all_units[iter].health = 100;
+		all_units[iter].protection = 15;
+		all_units[iter].damage = 10;
+		all_units[iter].atack_speed = 20;
+		all_units[iter].travel_speed = 5;
+		all_units[iter].color = 15;
+
+		map[99][21] = 15;
+
+		return all_units[iter];
+	case 1:	//bot
+		all_units[iter].x = 16;
+		all_units[iter].y = 5;
+		all_units[iter].health = 100;
+		all_units[iter].protection = 15;
+		all_units[iter].damage = 10;
+		all_units[iter].atack_speed = 20;
+		all_units[iter].travel_speed = 5;
+		all_units[iter].color = 13;
+
+		map[16][5] = 13;
+
+		return all_units[iter];
+	}
+}
+
+//places a unit on a map
+void UnitPlace(unit *un, int map[][size_y], int who ) {
+	c.X = size_x;
+	c.Y = size_y;
+	SetConsoleCursorPosition(h, c);
+	cout << "unit place";
+	Sleep(1000);
+
+
+	if (who == 1) { // bot
+		un->NewX = rand() % size_x;
+		un->NewY = rand() % size_y;
+		map[un->NewX][un->NewY] = un->color;
+	}
+	
+	else {
+		
+		HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE); // дескриптор окна
+
+		HANDLE hin = GetStdHandle(STD_INPUT_HANDLE); // дескриптор окна для работы с мышкой
+		SetConsoleMode(hin, ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS); // установка режима использования мышки
+
+		const int events_count = 256;
+		INPUT_RECORD all_events[events_count]; // массив событий, произошедших в консоли
+		DWORD read_event; // переменная, в которую запишется количество произошедших событий
+
+		while (true)
+		{
+			ReadConsoleInput(hin, all_events, events_count, &read_event); // получить все события, произошедшие в консоли
+			for (int i = 0; i < read_event; i++)
+			{ // пройтись по всем событиям
+				c.X = all_events[i].Event.MouseEvent.dwMousePosition.X; // запомнить координаты мышки
+				c.Y = all_events[i].Event.MouseEvent.dwMousePosition.Y;
+
+				// если нажата ЛЕВАЯ КНОПКА МЫШКИ
+				if (c.X > 0 && c.X < size_x && all_events[i].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED)
+				{
+					un->NewX = c.X;
+					un->NewY = c.Y;
+					map[un->NewX][un->NewY] = un->color;
+					break;
+				}
+
+			}
+		}
+	}
+	
+}
+
+//a vision of a unit
+void CheckSurrounding(unit un, int map[][size_y]) {
+	c.X = size_x;
+	c.Y = size_y;
+	SetConsoleCursorPosition(h, c);
+	cout << "check sur";
+	Sleep(1000);
+
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 2; j++) {
+			if (map[un.NewX + i][un.NewY + j] != 0) {
+				//Collision();
+			}
+		}
+	}
+}
+
+//bot logic
+void Bot(int iteration, unit all_units[], int map[][size_y]) {
+	c.X = size_x;
+	c.Y = size_y;
+	SetConsoleCursorPosition(h, c);
+	cout << "bot";
+	Sleep(1000);
+
+	UnitCreate(iteration, all_units, 1, map);
+	//ShowUnitMap(all_units, iteration);
+	UnitPlace(&all_units[iteration], map, 1);
+	UnitAnimmation(map, all_units[iteration]);
+	ShowUnitMap(all_units, iteration);
+	CheckSurrounding(all_units[iteration], map);
+
+}
+
+//player controls
+void Player(int iteration, unit all_units[], int map[][size_y]) {
+	c.X = size_x;
+	c.Y = size_y;
+	SetConsoleCursorPosition(h, c);
+	cout << "player";
+	Sleep(1000);
+
+	UnitCreate(iteration, all_units, 1, map);
+	UnitPlace(&all_units[iteration], map, 0);
+	ShowUnitMap(all_units, iteration);
+	CheckSurrounding(all_units[iteration], map);
+}
+
+//main part of the gameplay 
+void GamePlay() {
+	int iteration = 0;
+	int map[size_x][size_y]{ 0 };
+	unit all_units[1000];
+	DrawMap();
+	while (true) {
+		//Player(iteration, all_units, map);
+		iteration++;
+		Bot(iteration, all_units, map);
+		iteration++;
+	}
+}
+
+//displayes the map of the battlefield
+void DrawMap() {
+
+	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+	for (int i = 0; i < size_y; i++) {
+		for (int j = 0; j < size_x; j++) {
+			SetConsoleTextAttribute(h, GeneralMap[i][j]);
+			cout << unit_symbol;
+		}
+		cout << endl;
+	}
+}
+
+//hides cursor temporarily
+void HideCursor() {
+	CONSOLE_CURSOR_INFO alex; // скрыть курсор!
+	alex.dwSize = 100;
+	alex.bVisible = false;
+	SetConsoleCursorInfo(h, &alex);
+}
+
+//resizes the window
+void ScreenSize(int x, int y) {
+
+	COORD coord;
+	coord.X = x;
+	coord.Y = y;
+
+	_SMALL_RECT Rect;
+	Rect.Top = 0;
+	Rect.Left = 0;
+	Rect.Bottom = x - 1;
+	Rect.Right = y - 1;
+
+	// Adjust buffer size:
+	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (!SetConsoleScreenBufferSize(handle, coord))
+		throw std::runtime_error("Unable to resize screen buffer.");
+
+	// display as a maximized window
+	ShowWindow(GetConsoleWindow(), SW_MAXIMIZE);
+}
+
+//draws logo og the game
+void DrawLogo() {
+
+	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	//массив фразы lord of the
+	int Lord_of_the[9][57] = {
+		{0,0,1,2,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0, 0,0,0,0,0,1,2, 0,0,0,0,0,0, 0,0,0,0 ,0,0,0,0 ,0,0,0,0 ,0,0,0,0,0, 0,0,0},
+		{0,1,1,2,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0, 0,0,0,0,0,1,1, 0,0,0,0,0,0, 0,0,0,0 ,0,0,0,0 ,0,0,0,0 ,0,0,0,0,0, 0,0,0},
+		{1,1,1,2,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,1,2,0,0,0, 0,0,0,0,0,1,2, 0,0,0,0,0,0, 0,0,0,0 ,0,0,0,0 ,0,0,0,0 ,0,0,0,0,0, 0,0,0},
+		{0,0,1,2,0,0,0,0,0,0, 0,0,0,1,1,1,0,0, 0,1,1,1,1,0, 0,0,0,1,1,1,2, 0,0,0,0,0,0, 0,0,0,0 ,0,0,0,0 ,0,0,0,0 ,0,0,0,0,0, 0,0,0},
+		{0,0,1,2,0,0,0,0,0,0, 0,0,1,2,0,0,1,0, 0,1,2,0,0,1, 0,0,1,2,0,1,2, 0,0,0,0,0,0, 0,0,1,1 ,0,0,1,2 ,0,1,2,0 ,0,0,1,1,2, 0,0,0},
+		{0,0,1,2,0,0,0,0,0,0, 0,1,2,0,0,0,0,1, 0,1,2,0,0,1, 0,1,2,0,0,1,2, 0,0,0,0,0,0, 0,1,2,0 ,0,1,1,1 ,0,1,2,0 ,0,1,2,0,1, 0,0,0},
+		{0,0,1,2,0,0,0,1,2,0, 0,1,2,0,0,0,0,1, 0,1,1,1,1,0, 0,1,2,0,0,1,2, 0,0,0,1,1,1, 0,1,1,2 ,0,0,1,2 ,0,1,1,2 ,0,1,1,1,1, 0,0,0},
+		{0,0,1,2,0,0,0,1,1,2, 0,0,1,2,0,0,1,0, 0,1,2,1,0,0, 0,0,1,2,0,1,2, 0,0,0,1,2,1, 0,1,2,0 ,0,0,1,2 ,0,1,0,1 ,0,1,2,0,0, 0,0,0},
+		{0,1,1,1,1,1,1,1,1,1, 2,0,0,1,1,1,0,0, 0,1,2,0,1,1, 0,0,0,1,1,1,1, 0,0,0,1,1,1, 0,1,2,0 ,0,0,1,1 ,0,1,0,1 ,0,0,1,1,1, 0,0,0},
+	};
+
+	//массив фразы Rings
+	int Rings[9][23] = {
+		{0,1,0,0,0,0,0 ,0,0,0 ,0,0,0,0 ,0,0,0,0,0 ,0,0,0,0},
+		{1,1,1,1,1,2,0 ,0,0,0 ,0,0,0,0 ,0,0,0,0,0 ,0,0,0,0},
+		{0,1,2,0,0,1,2 ,0,0,0 ,0,0,0,0 ,0,0,0,0,0 ,0,0,0,0},
+		{0,1,2,0,0,1,2 ,0,0,0 ,0,0,0,0 ,0,0,0,0,0 ,0,0,0,0},
+		{0,1,1,1,1,2,0 ,0,1,2 ,1,2,0,0 ,0,0,1,1,1 ,0,0,1,1},
+		{0,1,2,0,1,2,0 ,0,0,0 ,1,1,1,0 ,0,1,2,0,0 ,0,1,2,0},
+		{0,1,2,0,1,1,2 ,0,1,2 ,1,2,0,1 ,0,1,2,1,1 ,0,1,1,2},
+		{0,1,2,0,0,1,2 ,0,1,2 ,1,2,0,1 ,0,1,2,0,1 ,0,0,0,1},
+		{1,1,2,0,0,1,1 ,0,1,2 ,1,2,0,1 ,0,0,1,1,1 ,0,1,1,2},
+	};
+
+	//отрисовка фразы lord of the
+	char symbol = 219;
+	for (int i = 0; i < 9; i++) {
+		for (int j = 0; j < 57; j++) {
+			if (Lord_of_the[i][j] == 1) {
+				SetConsoleTextAttribute(h, 14);
+				cout << symbol << symbol;
+			}
+			else if (Lord_of_the[i][j] == 2) {
+				SetConsoleTextAttribute(h, 6);
+				cout << symbol << " ";
+			}
+			else cout << "  ";
+		}
+		cout << endl;
+	}
+	cout << endl;
+
+	//отрисовка фразы Rings
+	for (int i = 0; i < 9; i++) {
+		cout << "\t" << "\t" << "\t" << "\t";
+		for (int j = 0; j < 23; j++) {
+			if (Rings[i][j] == 1) {
+				SetConsoleTextAttribute(h, 14);
+				cout << symbol << symbol;
+			}
+			else if (Rings[i][j] == 2) {
+				SetConsoleTextAttribute(h, 6);
+				cout << symbol << " ";
+			}
+			else cout << "  ";
+		}
+		cout << endl;
+	}
+
+	//отрисовка фразы Press....
+	cout << endl << endl;
+	cout << "\t" << "\t" << "\t" << "\t" << "\t";
+	cout << "Press any key to continue" << endl;
+}
+
+//displayes menu
+void DrawMenu() {
+	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	enum Colors { DARK_YELLOW = 6, YELLOW = 14 };
+	enum Keys { ENTER = 13, ESCAPE = 27, SPACE = 32, LEFT = 75, RIGHT = 77, DOWN = 80, UP = 72 };
+
+
+	const int items_count = 4;
+	string menu_items[items_count] = { "NEW GAME","LOAD GAME","OPTIONS", "EXIT" };
+
+	int startX = 35;
+	int startY = 3;
+	int margin = 2;
+
+	COORD position = { startX, startY };
+	for (auto item : menu_items)
+	{
+		SetConsoleTextAttribute(h, DARK_YELLOW);
+		SetConsoleCursorPosition(h, position);
+		cout << item;
+		position.Y += margin;
+	}
+
+	int current_item = 0; // new game
+	SetConsoleTextAttribute(h, YELLOW);
+	position.Y = startY + current_item * margin;
+	SetConsoleCursorPosition(h, position);
+	cout << menu_items[current_item];
+
+	int code;
+	while (true)
+	{
+		code = _getch();
+		if (code == 224)
+			code = _getch();
+
+		SetConsoleTextAttribute(h, DARK_YELLOW);
+		position.Y = startY + current_item * margin;
+		SetConsoleCursorPosition(h, position);
+		cout << menu_items[current_item];
+
+		if ((code == DOWN || code == RIGHT) && current_item < items_count - 1) // down arrow
+		{
+			current_item++;
+		}
+		else if ((code == UP || code == LEFT) && current_item > 0) // up arrow
+		{
+			current_item--;
+		}
+		else if (code == ENTER)
+		{
+			switch (current_item)
+			{
+			case 0: //new game
+				system("cls");
+				GamePlay();
+				break;
+			case 1:
+				//load_game();
+				break;
+			case 2:
+				//game_options();
+				break;
+			default:
+				exit(0);
+				break;
+			}
+		}
+
+		SetConsoleTextAttribute(h, YELLOW);
+		position.Y = startY + current_item * margin;
+		SetConsoleCursorPosition(h, position);
+		cout << menu_items[current_item];
+
+	}
+
+}
+
+
+
+int main() {
+	srand(time(0));
+	system("title _Lord of The Rings"); //changes the head
+	HideCursor();
+	ScreenSize(size_x + 20, size_y + 1); //+20 for text near the map
+	DrawLogo();
+	system("pause");
+	system("cls"); 
+	DrawMenu();
+
+	Sleep(INFINITE);
+
+}
